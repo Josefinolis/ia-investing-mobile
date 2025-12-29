@@ -64,28 +64,59 @@ app/src/main/java/com/iatrading/mobile/
 
 ## API Configuration
 
-Development (Android Emulator):
-```kotlin
-buildConfigField("String", "API_BASE_URL", "\"http://10.0.2.2:8000\"")
-```
+The app uses **product flavors** to handle different deployment targets:
 
-Production:
-```kotlin
-buildConfigField("String", "API_BASE_URL", "\"https://your-api-domain.com\"")
-```
+| Flavor | Target | API URL |
+|--------|--------|---------|
+| `emulator` | Android Emulator | `http://10.0.2.2:8000` |
+| `device` | Physical Device | Auto-detected host IP |
+
+The `device` flavor automatically detects your computer's local IP at build time using `hostname -I`.
 
 ## Building
 
+### For Android Emulator
 ```bash
-# Debug build
-./gradlew assembleDebug
+# Build and install
+./gradlew installEmulatorDebug
 
-# Install on device
-./gradlew installDebug
+# Or just build the APK
+./gradlew assembleEmulatorDebug
+```
 
+### For Physical Device (USB Debugging)
+```bash
+# Build and install - uses auto-detected host IP
+./gradlew installDeviceDebug
+
+# Or just build the APK
+./gradlew assembleDeviceDebug
+```
+
+### Production Release
+```bash
+# Uses https://your-api-domain.com (configure in build.gradle.kts)
+./gradlew assembleRelease
+```
+
+### Other Commands
+```bash
 # Run tests
 ./gradlew test
+
+# Clean build
+./gradlew clean
+
+# List all build variants
+./gradlew tasks --group=build
 ```
+
+### Build Variants in Android Studio
+1. Open **Build > Select Build Variant**
+2. Choose from:
+   - `emulatorDebug` - For emulator testing
+   - `deviceDebug` - For physical device testing
+   - `emulatorRelease` / `deviceRelease` - Release builds
 
 ## Dependencies
 
@@ -99,5 +130,12 @@ buildConfigField("String", "API_BASE_URL", "\"https://your-api-domain.com\"")
 ## Notes
 
 - Requires Android SDK 26+ (Android 8.0)
-- Uses cleartext traffic for development (http://10.0.2.2:8000)
-- Backend must be running on host machine port 8000
+- Uses cleartext traffic for development (HTTP)
+- Backend (`ia_trading`) must be running on host machine port 8000:
+  ```bash
+  cd /home/os_uis/projects/ia_trading
+  source venv/bin/activate
+  uvicorn api.main:app --host 0.0.0.0 --port 8000
+  ```
+- Use `device` flavor for physical devices (auto-detects host IP)
+- Use `emulator` flavor for Android Emulator (uses 10.0.2.2)

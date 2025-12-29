@@ -5,6 +5,20 @@ plugins {
     kotlin("kapt")
 }
 
+// Function to get host machine's local IP for physical device deployment
+fun getHostIp(): String {
+    return try {
+        val process = ProcessBuilder("hostname", "-I").start()
+        val result = process.inputStream.bufferedReader().readText().trim()
+        val ip = result.split(" ").firstOrNull()?.trim() ?: "localhost"
+        println("Detected host IP: $ip")
+        ip
+    } catch (e: Exception) {
+        println("Could not detect host IP, falling back to localhost: ${e.message}")
+        "localhost"
+    }
+}
+
 android {
     namespace = "com.iatrading.mobile"
     compileSdk = 34
@@ -21,10 +35,22 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
+    }
 
-        // API Base URL - change for production
-        // Use 10.0.2.2 for emulator, actual IP for physical device
-        buildConfigField("String", "API_BASE_URL", "\"http://10.0.2.2:8000\"")
+    // Product flavors for different deployment targets
+    flavorDimensions += "target"
+    productFlavors {
+        create("emulator") {
+            dimension = "target"
+            // Android emulator uses 10.0.2.2 to reach host's localhost
+            buildConfigField("String", "API_BASE_URL", "\"http://10.0.2.2:8000\"")
+        }
+        create("device") {
+            dimension = "target"
+            // Physical device uses the host machine's actual IP (detected at build time)
+            val hostIp = getHostIp()
+            buildConfigField("String", "API_BASE_URL", "\"http://$hostIp:8000\"")
+        }
     }
 
     buildTypes {
