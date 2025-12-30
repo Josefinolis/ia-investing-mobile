@@ -2,6 +2,7 @@ package com.iatrading.mobile.ui.screens.dashboard
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.iatrading.mobile.data.model.ApiStatusResponse
 import com.iatrading.mobile.data.model.Ticker
 import com.iatrading.mobile.data.repository.Result
 import com.iatrading.mobile.data.repository.TradingRepository
@@ -15,7 +16,8 @@ import javax.inject.Inject
 data class DashboardUiState(
     val isLoading: Boolean = true,
     val tickers: List<Ticker> = emptyList(),
-    val error: String? = null
+    val error: String? = null,
+    val apiStatus: ApiStatusResponse? = null
 )
 
 @HiltViewModel
@@ -28,6 +30,7 @@ class DashboardViewModel @Inject constructor(
 
     init {
         loadTickers()
+        loadApiStatus()
     }
 
     fun loadTickers() {
@@ -51,6 +54,24 @@ class DashboardViewModel @Inject constructor(
                 is Result.Loading -> {
                     _uiState.value = _uiState.value.copy(isLoading = true)
                 }
+            }
+
+            // Refresh API status after loading tickers
+            loadApiStatus()
+        }
+    }
+
+    fun loadApiStatus() {
+        viewModelScope.launch {
+            when (val result = repository.getApiStatus()) {
+                is Result.Success -> {
+                    _uiState.value = _uiState.value.copy(apiStatus = result.data)
+                }
+                is Result.Error -> {
+                    // Silently fail - don't show errors for status checks
+                    _uiState.value = _uiState.value.copy(apiStatus = null)
+                }
+                is Result.Loading -> { }
             }
         }
     }

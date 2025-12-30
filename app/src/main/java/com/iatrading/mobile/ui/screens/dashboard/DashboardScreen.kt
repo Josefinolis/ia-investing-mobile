@@ -18,6 +18,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.iatrading.mobile.R
+import com.iatrading.mobile.ui.components.ApiStatusBanner
 import com.iatrading.mobile.ui.components.TickerCard
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -106,6 +107,14 @@ fun DashboardScreen(
                         contentPadding = PaddingValues(16.dp),
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
+                        // API Status Banner
+                        if (uiState.apiStatus != null) {
+                            item {
+                                ApiStatusBanner(apiStatus = uiState.apiStatus)
+                            }
+                        }
+
+                        // Ticker Cards
                         items(
                             items = uiState.tickers,
                             key = { it.id }

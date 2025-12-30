@@ -104,4 +104,19 @@ class TradingRepository @Inject constructor(
             Result.Error("Network error: ${e.message}", e)
         }
     }
+
+    suspend fun getApiStatus(): Result<ApiStatusResponse> = withContext(Dispatchers.IO) {
+        try {
+            val response = api.getApiStatus()
+            if (response.isSuccessful) {
+                response.body()?.let {
+                    Result.Success(it)
+                } ?: Result.Error("Empty response")
+            } else {
+                Result.Error("Error: ${response.code()} - ${response.message()}")
+            }
+        } catch (e: Exception) {
+            Result.Error("Network error: ${e.message}", e)
+        }
+    }
 }

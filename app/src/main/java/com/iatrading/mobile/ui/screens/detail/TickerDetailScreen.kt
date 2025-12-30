@@ -18,6 +18,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.iatrading.mobile.R
+import com.iatrading.mobile.ui.components.ApiStatusBanner
 import com.iatrading.mobile.ui.components.NewsItemCard
 import com.iatrading.mobile.ui.components.SentimentBadge
 import com.iatrading.mobile.ui.theme.SentimentColors
@@ -94,6 +95,13 @@ fun TickerDetailScreen(
                         contentPadding = PaddingValues(16.dp),
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
+                        // API Status Banner
+                        if (uiState.apiStatus != null) {
+                            item {
+                                ApiStatusBanner(apiStatus = uiState.apiStatus)
+                            }
+                        }
+
                         // Sentiment Summary Card
                         uiState.ticker?.sentiment?.let { sentiment ->
                             item {

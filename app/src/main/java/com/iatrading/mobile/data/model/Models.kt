@@ -76,3 +76,20 @@ data class NewsListResponse(
     @SerializedName("pending_count") val pendingCount: Int,
     @SerializedName("analyzed_count") val analyzedCount: Int
 )
+
+/**
+ * Status of a single API service
+ */
+data class ApiServiceStatus(
+    val available: Boolean,
+    @SerializedName("cooldown_until") val cooldownUntil: String?,
+    val message: String?
+)
+
+/**
+ * Overall API status response
+ */
+data class ApiStatusResponse(
+    val gemini: ApiServiceStatus,
+    @SerializedName("alpha_vantage") val alphaVantage: ApiServiceStatus
+)
