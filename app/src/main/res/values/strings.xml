@@ -17,4 +17,19 @@
     <string name="pending">Pending</string>
     <string name="analyzed">Analyzed</string>
     <string name="no_news">No news available</string>
+
+    <!-- Settings Screen -->
+    <string name="settings_title">Settings</string>
+    <string name="api_configuration">API Configuration</string>
+    <string name="current_api_url">Current API URL</string>
+    <string name="default_api_url">Default API URL</string>
+    <string name="custom_url_active">Custom URL is active</string>
+    <string name="set_custom_url">Set Custom URL</string>
+    <string name="custom_url_description">Override the default API base URL. This is useful for testing or connecting to a different backend.</string>
+    <string name="api_base_url">API Base URL</string>
+    <string name="url_format_hint">Must start with http:// or https://</string>
+    <string name="reset_to_default">Reset to Default</string>
+    <string name="save_url">Save URL</string>
+    <string name="important_note">Important Note</string>
+    <string name="restart_app_note">You may need to restart the app for the new URL to take effect. Close the app completely and reopen it.</string>
 </resources>

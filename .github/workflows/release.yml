@@ -1,0 +1,68 @@
+name: Build and Release APK
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      release_name:
+        description: 'Release name (e.g., v1.0.0)'
+        required: true
+        default: 'v1.0.0'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: gradle
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Build Release APK
+        run: ./gradlew assembleDeviceRelease
+
+      - name: Build Debug APK
+        run: ./gradlew assembleDeviceDebug
+
+      - name: Get version name
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            echo "VERSION=${{ github.event.inputs.release_name }}" >> $GITHUB_OUTPUT
+          else
+            echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ steps.version.outputs.VERSION }}
+          name: Release ${{ steps.version.outputs.VERSION }}
+          draft: false
+          prerelease: false
+          files: |
+            app/build/outputs/apk/device/debug/app-device-debug.apk
+            app/build/outputs/apk/device/release/app-device-release-unsigned.apk
+          body: |
+            ## Download
+
+            - **Debug APK**: For testing (recommended for development)
+            - **Release APK**: Unsigned release build
+
+            ### Installation
+            1. Download the APK on your Android device
+            2. Enable "Install from unknown sources" if prompted
+            3. Open the APK to install
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

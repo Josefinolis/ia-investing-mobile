@@ -47,9 +47,8 @@ android {
         }
         create("device") {
             dimension = "target"
-            // Physical device uses the host machine's actual IP (detected at build time)
-            val hostIp = getHostIp()
-            buildConfigField("String", "API_BASE_URL", "\"http://$hostIp:8000\"")
+            // Physical device uses the production API on Render
+            buildConfigField("String", "API_BASE_URL", "\"https://ia-investing.onrender.com\"")
         }
     }
 
@@ -60,7 +59,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            buildConfigField("String", "API_BASE_URL", "\"https://your-api-domain.com\"")
+            buildConfigField("String", "API_BASE_URL", "\"https://ia-investing.onrender.com\"")
         }
     }
 
@@ -123,6 +122,9 @@ dependencies {
 
     // Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
+
+    // DataStore
+    implementation("androidx.datastore:datastore-preferences:1.0.0")
 
     // Testing
     testImplementation("junit:junit:4.13.2")

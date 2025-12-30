@@ -1,11 +1,16 @@
 package com.iatrading.mobile.di
 
+import android.content.Context
 import com.iatrading.mobile.BuildConfig
 import com.iatrading.mobile.data.api.TradingApi
+import com.iatrading.mobile.data.repository.SettingsRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -16,6 +21,12 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
+
+    @Provides
+    @Singleton
+    fun provideSettingsRepository(@ApplicationContext context: Context): SettingsRepository {
+        return SettingsRepository(context)
+    }
 
     @Provides
     @Singleton
@@ -38,9 +49,18 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun provideRetrofit(okHttpClient: OkHttpClient): Retrofit {
+    fun provideRetrofit(
+        okHttpClient: OkHttpClient,
+        settingsRepository: SettingsRepository
+    ): Retrofit {
+        // Read the base URL from DataStore synchronously during initialization
+        // This is acceptable in the DI graph initialization as it happens once at app start
+        val baseUrl = runBlocking {
+            settingsRepository.apiBaseUrl.first()
+        }
+
         return Retrofit.Builder()
-            .baseUrl(BuildConfig.API_BASE_URL + "/")
+            .baseUrl(baseUrl + "/")
             .client(okHttpClient)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
