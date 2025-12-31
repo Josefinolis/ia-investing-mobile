@@ -69,10 +69,10 @@ The app uses **product flavors** to handle different deployment targets:
 | Flavor | Target | API URL |
 |--------|--------|---------|
 | `emulator` | Android Emulator | `http://10.0.2.2:8000` (local backend) |
-| `device` | Physical Device | `https://ia-investing.onrender.com` (production) |
+| `device` | Physical Device | `http://195.20.235.94` (production VPS) |
 
 - Use `emulator` flavor for local development with backend running on your machine
-- Use `device` flavor for physical devices connecting to the production API
+- Use `device` flavor for physical devices connecting to the production VPS
 
 ## Building
 
@@ -87,7 +87,7 @@ The app uses **product flavors** to handle different deployment targets:
 
 ### For Physical Device (USB Debugging)
 ```bash
-# Build and install - connects to production API (ia-investing.onrender.com)
+# Build and install - connects to production VPS
 ./gradlew installDeviceDebug
 
 # Or just build the APK
@@ -96,7 +96,7 @@ The app uses **product flavors** to handle different deployment targets:
 
 ### Production Release
 ```bash
-# Uses https://ia-investing.onrender.com
+# Uses http://195.20.235.94 (production VPS)
 ./gradlew assembleRelease
 ```
 
@@ -138,5 +138,5 @@ The app uses **product flavors** to handle different deployment targets:
   source venv/bin/activate
   uvicorn api.main:app --host 0.0.0.0 --port 8000
   ```
-- Use `device` flavor for physical devices (connects to production API)
+- Use `device` flavor for physical devices (connects to production VPS)
 - Use `emulator` flavor for Android Emulator (connects to local backend)
