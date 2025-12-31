@@ -47,8 +47,8 @@ android {
         }
         create("device") {
             dimension = "target"
-            // Physical device uses the production API on Render
-            buildConfigField("String", "API_BASE_URL", "\"https://ia-investing.onrender.com\"")
+            // Physical device uses the production API on VPS
+            buildConfigField("String", "API_BASE_URL", "\"http://195.20.235.94\"")
         }
     }
 
@@ -59,7 +59,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            buildConfigField("String", "API_BASE_URL", "\"https://ia-investing.onrender.com\"")
+            buildConfigField("String", "API_BASE_URL", "\"http://195.20.235.94\"")
         }
     }
 
