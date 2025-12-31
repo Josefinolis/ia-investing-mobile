@@ -68,10 +68,11 @@ The app uses **product flavors** to handle different deployment targets:
 
 | Flavor | Target | API URL |
 |--------|--------|---------|
-| `emulator` | Android Emulator | `http://10.0.2.2:8000` |
-| `device` | Physical Device | Auto-detected host IP |
+| `emulator` | Android Emulator | `http://10.0.2.2:8000` (local backend) |
+| `device` | Physical Device | `https://ia-investing.onrender.com` (production) |
 
-The `device` flavor automatically detects your computer's local IP at build time using `hostname -I`.
+- Use `emulator` flavor for local development with backend running on your machine
+- Use `device` flavor for physical devices connecting to the production API
 
 ## Building
 
@@ -86,7 +87,7 @@ The `device` flavor automatically detects your computer's local IP at build time
 
 ### For Physical Device (USB Debugging)
 ```bash
-# Build and install - uses auto-detected host IP
+# Build and install - connects to production API (ia-investing.onrender.com)
 ./gradlew installDeviceDebug
 
 # Or just build the APK
@@ -95,7 +96,7 @@ The `device` flavor automatically detects your computer's local IP at build time
 
 ### Production Release
 ```bash
-# Uses https://your-api-domain.com (configure in build.gradle.kts)
+# Uses https://ia-investing.onrender.com
 ./gradlew assembleRelease
 ```
 
@@ -130,12 +131,12 @@ The `device` flavor automatically detects your computer's local IP at build time
 ## Notes
 
 - Requires Android SDK 26+ (Android 8.0)
-- Uses cleartext traffic for development (HTTP)
-- Backend (`ia_trading`) must be running on host machine port 8000:
+- Uses cleartext traffic for emulator development (HTTP to localhost)
+- For `emulator` flavor, backend (`ia_trading`) must be running on host machine port 8000:
   ```bash
   cd /home/os_uis/projects/ia_trading
   source venv/bin/activate
   uvicorn api.main:app --host 0.0.0.0 --port 8000
   ```
-- Use `device` flavor for physical devices (auto-detects host IP)
-- Use `emulator` flavor for Android Emulator (uses 10.0.2.2)
+- Use `device` flavor for physical devices (connects to production API)
+- Use `emulator` flavor for Android Emulator (connects to local backend)
