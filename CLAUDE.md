@@ -55,7 +55,8 @@ app/src/main/java/com/iatrading/mobile/
 - Sentiment summary card
 - News list with status badges
 - Filter by pending/analyzed
-- Manual refresh button
+- Fetch News button (downloads new articles)
+- Analyze button (runs AI sentiment analysis on pending news)
 
 ### Add Ticker
 - Ticker symbol input (uppercase letters only)

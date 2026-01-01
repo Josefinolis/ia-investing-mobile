@@ -5,12 +5,14 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Download
+import androidx.compose.material.icons.filled.Psychology
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -33,11 +35,21 @@ fun TickerDetailScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
+    val snackbarHostState = remember { SnackbarHostState() }
+
     LaunchedEffect(tickerSymbol) {
         viewModel.loadTicker(tickerSymbol)
     }
 
+    LaunchedEffect(uiState.actionMessage) {
+        uiState.actionMessage?.let {
+            snackbarHostState.showSnackbar(it)
+            viewModel.clearActionMessage()
+        }
+    }
+
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = { Text(tickerSymbol) },
@@ -47,17 +59,32 @@ fun TickerDetailScreen(
                     }
                 },
                 actions = {
+                    // Fetch News button
                     IconButton(
-                        onClick = { viewModel.refreshNews(tickerSymbol) },
-                        enabled = !uiState.isRefreshing
+                        onClick = { viewModel.fetchNews(tickerSymbol) },
+                        enabled = !uiState.isFetching && !uiState.isAnalyzing
                     ) {
-                        if (uiState.isRefreshing) {
+                        if (uiState.isFetching) {
                             CircularProgressIndicator(
                                 modifier = Modifier.size(24.dp),
                                 strokeWidth = 2.dp
                             )
                         } else {
-                            Icon(Icons.Default.Refresh, contentDescription = "Refresh")
+                            Icon(Icons.Default.Download, contentDescription = "Fetch News")
+                        }
+                    }
+                    // Analyze button
+                    IconButton(
+                        onClick = { viewModel.analyzeNews(tickerSymbol) },
+                        enabled = !uiState.isFetching && !uiState.isAnalyzing && uiState.pendingCount > 0
+                    ) {
+                        if (uiState.isAnalyzing) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(24.dp),
+                                strokeWidth = 2.dp
+                            )
+                        } else {
+                            Icon(Icons.Default.Psychology, contentDescription = "Analyze")
                         }
                     }
                 }

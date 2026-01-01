@@ -36,6 +36,11 @@ interface TradingApi {
         @Query("hours") hours: Int = 24
     ): Response<Map<String, String>>
 
+    @POST("api/tickers/{ticker}/analyze")
+    suspend fun triggerAnalyze(
+        @Path("ticker") ticker: String
+    ): Response<Map<String, String>>
+
     @GET("api/status")
     suspend fun getApiStatus(): Response<ApiStatusResponse>
 }

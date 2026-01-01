@@ -96,7 +96,20 @@ class TradingRepository @Inject constructor(
         try {
             val response = api.triggerFetch(ticker)
             if (response.isSuccessful) {
-                Result.Success(response.body()?.get("message") ?: "Refresh triggered")
+                Result.Success(response.body()?.get("message") ?: "Fetch triggered")
+            } else {
+                Result.Error("Error: ${response.code()}")
+            }
+        } catch (e: Exception) {
+            Result.Error("Network error: ${e.message}", e)
+        }
+    }
+
+    suspend fun analyzeTicker(ticker: String): Result<String> = withContext(Dispatchers.IO) {
+        try {
+            val response = api.triggerAnalyze(ticker)
+            if (response.isSuccessful) {
+                Result.Success(response.body()?.get("message") ?: "Analysis triggered")
             } else {
                 Result.Error("Error: ${response.code()}")
             }

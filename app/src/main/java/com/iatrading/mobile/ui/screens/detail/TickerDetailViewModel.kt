@@ -21,8 +21,10 @@ data class TickerDetailUiState(
     val pendingCount: Int = 0,
     val analyzedCount: Int = 0,
     val error: String? = null,
-    val isRefreshing: Boolean = false,
-    val apiStatus: ApiStatusResponse? = null
+    val isFetching: Boolean = false,
+    val isAnalyzing: Boolean = false,
+    val apiStatus: ApiStatusResponse? = null,
+    val actionMessage: String? = null
 )
 
 @HiltViewModel
@@ -91,20 +93,55 @@ class TickerDetailViewModel @Inject constructor(
         }
     }
 
-    fun refreshNews(symbol: String) {
+    fun fetchNews(symbol: String) {
         viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(isRefreshing = true)
+            _uiState.value = _uiState.value.copy(isFetching = true, actionMessage = null)
 
-            when (repository.refreshTicker(symbol)) {
+            when (val result = repository.refreshTicker(symbol)) {
                 is Result.Success -> {
-                    // Reload data after refresh
+                    _uiState.value = _uiState.value.copy(
+                        isFetching = false,
+                        actionMessage = result.data
+                    )
+                    // Reload data after fetch
                     loadTicker(symbol)
                 }
                 is Result.Error -> {
-                    _uiState.value = _uiState.value.copy(isRefreshing = false)
+                    _uiState.value = _uiState.value.copy(
+                        isFetching = false,
+                        actionMessage = result.message
+                    )
                 }
                 is Result.Loading -> { }
             }
         }
+    }
+
+    fun analyzeNews(symbol: String) {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isAnalyzing = true, actionMessage = null)
+
+            when (val result = repository.analyzeTicker(symbol)) {
+                is Result.Success -> {
+                    _uiState.value = _uiState.value.copy(
+                        isAnalyzing = false,
+                        actionMessage = result.data
+                    )
+                    // Reload data after analysis
+                    loadTicker(symbol)
+                }
+                is Result.Error -> {
+                    _uiState.value = _uiState.value.copy(
+                        isAnalyzing = false,
+                        actionMessage = result.message
+                    )
+                }
+                is Result.Loading -> { }
+            }
+        }
+    }
+
+    fun clearActionMessage() {
+        _uiState.value = _uiState.value.copy(actionMessage = null)
     }
 }
