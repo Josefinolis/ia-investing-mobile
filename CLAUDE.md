@@ -141,3 +141,8 @@ The app uses **product flavors** to handle different deployment targets:
   ```
 - Use `device` flavor for physical devices (connects to production VPS)
 - Use `emulator` flavor for Android Emulator (connects to local backend)
+
+## Production
+
+- **API URL:** http://195.20.235.94
+- **Infrastructure:** https://github.com/Josefinolis/documentation
