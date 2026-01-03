@@ -1,8 +1,6 @@
 # IA Trading Mobile - Android App
 
-## Project Overview
-
-Native Android app for visualizing market sentiment data from the ia_trading backend API.
+Native Android app for visualizing market sentiment data from the IA Trading API.
 
 ## Tech Stack
 
@@ -23,9 +21,10 @@ app/src/main/java/com/iatrading/mobile/
 │   ├── api/
 │   │   └── TradingApi.kt      # Retrofit interface
 │   ├── model/
-│   │   └── Models.kt          # Data classes
+│   │   └── Models.kt          # Data classes (snake_case with @SerializedName)
 │   └── repository/
-│       └── TradingRepository.kt
+│       ├── TradingRepository.kt
+│       └── SettingsRepository.kt
 ├── di/
 │   └── NetworkModule.kt       # Hilt DI module
 ├── ui/
@@ -35,114 +34,133 @@ app/src/main/java/com/iatrading/mobile/
 │   ├── screens/
 │   │   ├── dashboard/         # Ticker list
 │   │   ├── detail/            # Ticker news & sentiment
-│   │   └── addticker/         # Add new ticker
+│   │   ├── addticker/         # Add new ticker
+│   │   └── settings/          # App settings
 │   └── components/
 │       ├── TickerCard.kt
 │       ├── NewsItemCard.kt
-│       └── SentimentBadge.kt
+│       ├── SentimentBadge.kt
+│       └── ApiStatusBanner.kt
 ```
 
 ## Screens
 
 ### Dashboard
-- List of followed tickers
-- Sentiment score and signal for each
+- List of followed tickers with sentiment scores
 - Pull-to-refresh
 - FAB to add ticker
-- Swipe to delete (pending)
+- Tap to view details
+- API status banner (shows rate limit warnings)
 
 ### Ticker Detail
-- Sentiment summary card
-- News list with status badges
-- Filter by pending/analyzed
-- Fetch News button (downloads new articles)
-- Analyze button (runs AI sentiment analysis on pending news)
+- Sentiment summary card (score, signal, confidence)
+- News list with analysis status badges
+- **Fetch News** button - downloads new articles
+- **Analyze** button - triggers AI sentiment analysis
+- Shows pending/analyzed counts
 
 ### Add Ticker
-- Ticker symbol input (uppercase letters only)
+- Ticker symbol input (uppercase letters and numbers)
 - Optional company name
-- Validation feedback
+- Real-time validation
+
+### Settings
+- API endpoint configuration
+- Theme preferences
 
 ## API Configuration
 
-The app uses **product flavors** to handle different deployment targets:
+The app uses **product flavors** for different environments:
 
 | Flavor | Target | API URL |
 |--------|--------|---------|
-| `emulator` | Android Emulator | `http://10.0.2.2:8000` (local backend) |
-| `device` | Physical Device | `http://195.20.235.94` (production VPS) |
-
-- Use `emulator` flavor for local development with backend running on your machine
-- Use `device` flavor for physical devices connecting to the production VPS
+| `emulator` | Android Emulator | `http://10.0.2.2:8080` |
+| `device` | Physical Device | `http://195.20.235.94` |
 
 ## Building
 
-### For Android Emulator
+### For Android Emulator (local API)
 ```bash
-# Build and install
 ./gradlew installEmulatorDebug
-
-# Or just build the APK
-./gradlew assembleEmulatorDebug
 ```
 
-### For Physical Device (USB Debugging)
+### For Physical Device (production API)
 ```bash
-# Build and install - connects to production VPS
 ./gradlew installDeviceDebug
-
-# Or just build the APK
-./gradlew assembleDeviceDebug
 ```
 
 ### Production Release
 ```bash
-# Uses http://195.20.235.94 (production VPS)
 ./gradlew assembleRelease
 ```
 
 ### Other Commands
 ```bash
-# Run tests
-./gradlew test
-
-# Clean build
-./gradlew clean
-
-# List all build variants
-./gradlew tasks --group=build
+./gradlew test              # Run tests
+./gradlew clean             # Clean build
+./gradlew lint              # Run lint checks
 ```
 
-### Build Variants in Android Studio
+## Build Variants (Android Studio)
+
 1. Open **Build > Select Build Variant**
-2. Choose from:
-   - `emulatorDebug` - For emulator testing
-   - `deviceDebug` - For physical device testing
-   - `emulatorRelease` / `deviceRelease` - Release builds
+2. Choose:
+   - `emulatorDebug` - Emulator + local API
+   - `deviceDebug` - Physical device + production API
+
+## API Integration
+
+The app expects the API to return JSON with **snake_case** field names:
+
+```json
+{
+  "ticker": "AAPL",
+  "added_at": "2026-01-03T10:00:00",
+  "is_active": true,
+  "sentiment": {
+    "normalized_score": 0.5,
+    "sentiment_label": "Positive",
+    "positive_count": 10
+  }
+}
+```
+
+### Endpoints Used
+
+| Endpoint | Screen |
+|----------|--------|
+| `GET /api/tickers` | Dashboard |
+| `POST /api/tickers` | Add Ticker |
+| `DELETE /api/tickers/{ticker}` | Dashboard |
+| `GET /api/tickers/{ticker}` | Detail |
+| `GET /api/tickers/{ticker}/news` | Detail |
+| `POST /api/tickers/{ticker}/fetch` | Detail |
+| `POST /api/tickers/{ticker}/analyze` | Detail |
+| `GET /api/status` | Dashboard, Detail |
 
 ## Dependencies
 
-- Compose BOM 2024.02.00
-- Hilt 2.48
-- Retrofit 2.9.0
-- OkHttp 4.12.0
-- Navigation Compose 2.7.6
-- Lifecycle 2.7.0
+| Library | Version | Purpose |
+|---------|---------|---------|
+| Compose BOM | 2024.02.00 | UI framework |
+| Hilt | 2.48 | Dependency injection |
+| Retrofit | 2.9.0 | HTTP client |
+| OkHttp | 4.12.0 | HTTP client |
+| Navigation Compose | 2.7.6 | Navigation |
+| Lifecycle | 2.7.0 | ViewModel, State |
 
-## Notes
+## Requirements
 
-- Requires Android SDK 26+ (Android 8.0)
-- Uses cleartext traffic for emulator development (HTTP to localhost)
-- For `emulator` flavor, backend (`ia_trading`) must be running on host machine port 8000:
-  ```bash
-  cd /home/os_uis/projects/ia_trading
-  source venv/bin/activate
-  uvicorn api.main:app --host 0.0.0.0 --port 8000
-  ```
-- Use `device` flavor for physical devices (connects to production VPS)
-- Use `emulator` flavor for Android Emulator (connects to local backend)
+- Android SDK 26+ (Android 8.0 Oreo)
+- Kotlin 1.9+
+- JDK 17+
+
+## Network Security
+
+- `emulator` flavor: Allows cleartext HTTP (for local development)
+- `device` flavor: Uses HTTP to production VPS (should migrate to HTTPS)
 
 ## Production
 
-- **API URL:** http://195.20.235.94
-- **Infrastructure:** https://github.com/Josefinolis/documentation
+- **Backend API**: http://195.20.235.94 (Kotlin/Spring Boot)
+- **Repository**: https://github.com/Josefinolis/ia-investing-mobile
