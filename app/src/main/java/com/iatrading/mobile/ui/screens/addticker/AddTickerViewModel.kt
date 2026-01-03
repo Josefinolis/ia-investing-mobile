@@ -29,7 +29,7 @@ class AddTickerViewModel @Inject constructor(
 
     fun updateTicker(ticker: String) {
         _uiState.value = _uiState.value.copy(
-            ticker = ticker.uppercase().filter { it.isLetter() },
+            ticker = ticker.uppercase().filter { it.isLetterOrDigit() },
             error = null
         )
     }
