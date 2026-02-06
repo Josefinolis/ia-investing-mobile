@@ -7,6 +7,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.iatrading.mobile.ui.screens.addticker.AddTickerScreen
+import com.iatrading.mobile.ui.screens.botinsights.BotInsightsScreen
 import com.iatrading.mobile.ui.screens.dashboard.DashboardScreen
 import com.iatrading.mobile.ui.screens.detail.TickerDetailScreen
 import com.iatrading.mobile.ui.screens.settings.SettingsScreen
@@ -18,6 +19,7 @@ sealed class Screen(val route: String) {
     }
     object AddTicker : Screen("add_ticker")
     object Settings : Screen("settings")
+    object BotInsights : Screen("bot_insights")
 }
 
 @Composable
@@ -38,6 +40,9 @@ fun TradingNavGraph() {
                 },
                 onSettingsClick = {
                     navController.navigate(Screen.Settings.route)
+                },
+                onBotInsightsClick = {
+                    navController.navigate(Screen.BotInsights.route)
                 }
             )
         }
@@ -64,6 +69,12 @@ fun TradingNavGraph() {
 
         composable(Screen.Settings.route) {
             SettingsScreen(
+                onBackClick = { navController.popBackStack() }
+            )
+        }
+
+        composable(Screen.BotInsights.route) {
+            BotInsightsScreen(
                 onBackClick = { navController.popBackStack() }
             )
         }

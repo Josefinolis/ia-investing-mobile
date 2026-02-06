@@ -2,6 +2,7 @@ package com.iatrading.mobile.di
 
 import android.content.Context
 import com.iatrading.mobile.BuildConfig
+import com.iatrading.mobile.data.api.BotApi
 import com.iatrading.mobile.data.api.TradingApi
 import com.iatrading.mobile.data.repository.SettingsRepository
 import dagger.Module
@@ -70,5 +71,20 @@ object NetworkModule {
     @Singleton
     fun provideTradingApi(retrofit: Retrofit): TradingApi {
         return retrofit.create(TradingApi::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideBotApi(okHttpClient: OkHttpClient): BotApi {
+        // Use the BOT_API_URL from BuildConfig
+        val botBaseUrl = BuildConfig.BOT_API_URL
+
+        val botRetrofit = Retrofit.Builder()
+            .baseUrl(botBaseUrl + "/")
+            .client(okHttpClient)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+
+        return botRetrofit.create(BotApi::class.java)
     }
 }

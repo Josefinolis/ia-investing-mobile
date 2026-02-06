@@ -44,11 +44,13 @@ android {
             dimension = "target"
             // Android emulator uses 10.0.2.2 to reach host's localhost
             buildConfigField("String", "API_BASE_URL", "\"http://10.0.2.2:8000\"")
+            buildConfigField("String", "BOT_API_URL", "\"http://10.0.2.2:8001\"")
         }
         create("device") {
             dimension = "target"
             // Physical device uses the production API on VPS
             buildConfigField("String", "API_BASE_URL", "\"http://195.20.235.94\"")
+            buildConfigField("String", "BOT_API_URL", "\"http://195.20.235.94:8001\"")
         }
     }
 
@@ -125,6 +127,9 @@ dependencies {
 
     // DataStore
     implementation("androidx.datastore:datastore-preferences:1.0.0")
+
+    // Swipe Refresh
+    implementation("com.google.accompanist:accompanist-swiperefresh:0.32.0")
 
     // Testing
     testImplementation("junit:junit:4.13.2")

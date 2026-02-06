@@ -7,6 +7,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.SmartToy
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -27,6 +28,7 @@ fun DashboardScreen(
     onTickerClick: (String) -> Unit,
     onAddClick: () -> Unit,
     onSettingsClick: () -> Unit,
+    onBotInsightsClick: () -> Unit,
     viewModel: DashboardViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -36,6 +38,9 @@ fun DashboardScreen(
             TopAppBar(
                 title = { Text(stringResource(R.string.dashboard_title)) },
                 actions = {
+                    IconButton(onClick = onBotInsightsClick) {
+                        Icon(Icons.Default.SmartToy, contentDescription = "Bot Insights")
+                    }
                     IconButton(onClick = { viewModel.loadTickers() }) {
                         Icon(Icons.Default.Refresh, contentDescription = "Refresh")
                     }
