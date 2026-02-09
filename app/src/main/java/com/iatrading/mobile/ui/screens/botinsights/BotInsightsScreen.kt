@@ -105,7 +105,7 @@ fun BotInsightsScreen(
                     ) {
                         when (selectedTab) {
                             0 -> OverviewTab(successState)
-                            1 -> ConfigTab(successState.config)
+                            1 -> ConfigTab(successState.selectedBot?.config)
                             2 -> TradesTab(successState.recentTrades)
                             3 -> PerformanceTab(successState.performance, successState.equityData)
                         }
@@ -125,8 +125,15 @@ private fun OverviewTab(state: BotInsightsUiState.Success) {
     ) {
         // Bot Status Card
         item {
-            state.status?.let { status ->
-                BotStatusCard(status)
+            state.selectedBot?.let { bot ->
+                BotStatusDetailCard(bot)
+            }
+        }
+
+        // All Bots Summary (if multiple bots)
+        if (state.allBots.size > 1) {
+            item {
+                AllBotsCard(state.allBots)
             }
         }
 
@@ -134,15 +141,6 @@ private fun OverviewTab(state: BotInsightsUiState.Success) {
         item {
             state.performance?.let { perf ->
                 QuickStatsCard(perf)
-            }
-        }
-
-        // Current Positions
-        item {
-            state.status?.currentPositions?.let { positions ->
-                if (positions.isNotEmpty()) {
-                    CurrentPositionsCard(positions)
-                }
             }
         }
 
@@ -163,7 +161,7 @@ private fun OverviewTab(state: BotInsightsUiState.Success) {
 }
 
 @Composable
-private fun ConfigTab(config: BotConfig?) {
+private fun ConfigTab(config: BotConfigDetail?) {
     if (config == null) {
         Box(
             modifier = Modifier.fillMaxSize(),
@@ -180,10 +178,12 @@ private fun ConfigTab(config: BotConfig?) {
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         item {
-            ConfigurationCard(config)
+            ConfigurationDetailCard(config)
         }
-        item {
-            RiskConfigCard(config.riskConfig)
+        config.riskConfig?.let { riskConfig ->
+            item {
+                RiskConfigDetailCard(riskConfig)
+            }
         }
     }
 }
@@ -242,9 +242,9 @@ private fun PerformanceTab(
     }
 }
 
-// Placeholder composables - we'll implement these in the components file
+// Bot Status Cards
 @Composable
-private fun BotStatusCard(status: com.iatrading.mobile.data.model.BotStatus) {
+private fun BotStatusDetailCard(bot: BotStatusDetail) {
     ElevatedCard(
         modifier = Modifier.fillMaxWidth()
     ) {
@@ -257,22 +257,88 @@ private fun BotStatusCard(status: com.iatrading.mobile.data.model.BotStatus) {
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Icon(
-                    if (status.isRunning) Icons.Default.PlayArrow else Icons.Default.Stop,
+                    if (bot.isRunning) Icons.Default.PlayArrow else Icons.Default.Stop,
                     contentDescription = null,
-                    tint = if (status.isRunning) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
+                    tint = if (bot.isRunning) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
                 )
                 Text(
-                    if (status.isRunning) "Bot Running" else "Bot Stopped",
+                    if (bot.isRunning) "Bot Running" else "Bot Stopped",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold
                 )
             }
-            if (status.killSwitchActive) {
+
+            bot.symbol?.let { symbol ->
+                ConfigRow("Symbol", symbol)
+            }
+            bot.strategy?.let { strategy ->
+                ConfigRow("Strategy", strategy)
+            }
+
+            if (bot.killSwitchActive) {
                 Text(
                     "Kill Switch Active",
                     color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.bodyMedium
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Bold
                 )
+            }
+
+            bot.lastSignalType?.let { signalType ->
+                ConfigRow("Last Signal", signalType)
+            }
+
+            bot.uptimeSeconds?.let { uptime ->
+                val hours = uptime / 3600
+                val minutes = (uptime % 3600) / 60
+                ConfigRow("Uptime", "${hours}h ${minutes}m")
+            }
+        }
+    }
+}
+
+@Composable
+private fun AllBotsCard(bots: List<BotStatusDetail>) {
+    ElevatedCard(
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Text(
+                "All Bots (${bots.size})",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
+            )
+            Divider()
+            bots.forEach { bot ->
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            if (bot.isRunning) Icons.Default.Check else Icons.Default.Close,
+                            contentDescription = null,
+                            tint = if (bot.isRunning) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Text(bot.symbol ?: bot.sessionId.take(8))
+                    }
+                    Text(
+                        bot.strategy ?: "Unknown",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                if (bot != bots.last()) {
+                    Divider(modifier = Modifier.padding(vertical = 4.dp))
+                }
             }
         }
     }
@@ -320,56 +386,6 @@ private fun StatItem(label: String, value: String) {
     }
 }
 
-@Composable
-private fun CurrentPositionsCard(positions: List<com.iatrading.mobile.data.model.BotPosition>) {
-    ElevatedCard(
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp)
-        ) {
-            Text(
-                "Current Positions",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            positions.forEach { position ->
-                PositionItem(position)
-                if (position != positions.last()) {
-                    Divider(modifier = Modifier.padding(vertical = 8.dp))
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun PositionItem(position: com.iatrading.mobile.data.model.BotPosition) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Column {
-            Text(position.symbol, fontWeight = FontWeight.Bold)
-            Text("${position.quantity} @ ${position.entryPrice}", style = MaterialTheme.typography.bodySmall)
-        }
-        Column(horizontalAlignment = Alignment.End) {
-            Text(
-                position.unrealizedPnl,
-                color = if (position.unrealizedPnl.startsWith("-"))
-                    MaterialTheme.colorScheme.error
-                else
-                    MaterialTheme.colorScheme.primary,
-                fontWeight = FontWeight.Bold
-            )
-            Text(
-                "${position.unrealizedPnlPercent}%",
-                style = MaterialTheme.typography.bodySmall
-            )
-        }
-    }
-}
 
 @Composable
 private fun TradeListItem(trade: com.iatrading.mobile.data.model.BotTrade) {
@@ -408,7 +424,7 @@ private fun TradeListItem(trade: com.iatrading.mobile.data.model.BotTrade) {
 }
 
 @Composable
-private fun ConfigurationCard(config: com.iatrading.mobile.data.model.BotConfig) {
+private fun ConfigurationDetailCard(config: BotConfigDetail) {
     ElevatedCard(
         modifier = Modifier.fillMaxWidth()
     ) {
@@ -418,19 +434,18 @@ private fun ConfigurationCard(config: com.iatrading.mobile.data.model.BotConfig)
         ) {
             Text("Bot Configuration", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
             Divider()
-            ConfigRow("Broker", config.broker)
-            ConfigRow("Mode", config.tradingMode)
-            ConfigRow("Strategy", config.strategy)
-            ConfigRow("Timeframe", config.timeframe)
-            ConfigRow("Symbol", config.defaultSymbol)
+            config.broker?.let { ConfigRow("Broker", it) }
+            config.tradingMode?.let { ConfigRow("Mode", it) }
+            config.interval?.let { ConfigRow("Interval", it) }
             config.mlModel?.let { ConfigRow("ML Model", it) }
-            config.confidenceThreshold?.let { ConfigRow("Threshold", it.toString()) }
+            config.confidenceThreshold?.let { ConfigRow("Threshold", it) }
+            config.initialBalance?.let { ConfigRow("Initial Balance", "$${it}") }
         }
     }
 }
 
 @Composable
-private fun RiskConfigCard(riskConfig: com.iatrading.mobile.data.model.RiskConfig) {
+private fun RiskConfigDetailCard(riskConfig: BotRiskConfig) {
     ElevatedCard(
         modifier = Modifier.fillMaxWidth()
     ) {
@@ -440,9 +455,9 @@ private fun RiskConfigCard(riskConfig: com.iatrading.mobile.data.model.RiskConfi
         ) {
             Text("Risk Management", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
             Divider()
-            ConfigRow("Max Position", "${riskConfig.maxPositionPct}%")
-            ConfigRow("Max Daily Loss", "${riskConfig.maxDailyLossPct}%")
-            ConfigRow("Stop Loss", "${riskConfig.stopLossPct}%")
+            riskConfig.maxPositionPct?.let { ConfigRow("Max Position", "${it}%") }
+            riskConfig.maxDailyLossPct?.let { ConfigRow("Max Daily Loss", "${it}%") }
+            riskConfig.stopLossPct?.let { ConfigRow("Stop Loss", "${it}%") }
         }
     }
 }

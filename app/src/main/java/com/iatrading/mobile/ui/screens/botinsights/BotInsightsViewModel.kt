@@ -12,8 +12,8 @@ import javax.inject.Inject
 sealed interface BotInsightsUiState {
     object Loading : BotInsightsUiState
     data class Success(
-        val config: BotConfig?,
-        val status: BotStatus?,
+        val allBots: List<BotStatusDetail>,
+        val selectedBot: BotStatusDetail?,
         val performance: BotPerformance?,
         val recentTrades: List<BotTrade>,
         val equityData: List<EquityDataPoint>
@@ -50,22 +50,20 @@ class BotInsightsViewModel @Inject constructor(
 
             try {
                 // Load all data in parallel
-                var config: BotConfig? = null
-                var status: BotStatus? = null
+                var allBots: List<BotStatusDetail> = emptyList()
+                var selectedBot: BotStatusDetail? = null
                 var performance: BotPerformance? = null
                 var trades: List<BotTrade> = emptyList()
                 var equity: List<EquityDataPoint> = emptyList()
 
-                // Load config
-                botRepository.getBotConfig().collect { result ->
-                    result.onSuccess { config = it }
-                        .onFailure { /* Log error but continue */ }
-                }
-
-                // Load status
-                botRepository.getBotStatus().collect { result ->
-                    result.onSuccess { status = it }
-                        .onFailure { /* Log error but continue */ }
+                // Load all bot statuses (includes configuration for each bot)
+                botRepository.getAllBotStatus().collect { result ->
+                    result.onSuccess {
+                        allBots = it.bots
+                        // Select first bot by default
+                        selectedBot = it.bots.firstOrNull()
+                    }
+                    .onFailure { /* Log error but continue */ }
                 }
 
                 // Load performance
@@ -87,8 +85,8 @@ class BotInsightsViewModel @Inject constructor(
                 }
 
                 _uiState.value = BotInsightsUiState.Success(
-                    config = config,
-                    status = status,
+                    allBots = allBots,
+                    selectedBot = selectedBot,
                     performance = performance,
                     recentTrades = trades,
                     equityData = equity

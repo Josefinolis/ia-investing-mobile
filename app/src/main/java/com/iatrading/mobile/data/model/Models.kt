@@ -97,34 +97,25 @@ data class ApiStatusResponse(
 // === Bot Models ===
 
 /**
- * Bot configuration
+ * Bot configuration detail (embedded in status)
  */
-data class BotConfig(
-    val broker: String,
-    @SerializedName("trading_mode") val tradingMode: String,
-    val strategy: String,
-    val timeframe: String,
-    @SerializedName("default_symbol") val defaultSymbol: String,
-    @SerializedName("ml_model") val mlModel: String?,
-    @SerializedName("confidence_threshold") val confidenceThreshold: Double?,
-    @SerializedName("risk_config") val riskConfig: RiskConfig,
-    @SerializedName("paper_trading") val paperTrading: PaperTrading,
-    val notification: Notification
+data class BotConfigDetail(
+    val broker: String? = null,
+    @SerializedName("trading_mode") val tradingMode: String? = null,
+    val interval: String? = null,
+    @SerializedName("ml_model") val mlModel: String? = null,
+    @SerializedName("confidence_threshold") val confidenceThreshold: String? = null,
+    @SerializedName("risk_config") val riskConfig: BotRiskConfig? = null,
+    @SerializedName("initial_balance") val initialBalance: String? = null
 )
 
-data class RiskConfig(
-    @SerializedName("max_position_pct") val maxPositionPct: Double,
-    @SerializedName("max_daily_loss_pct") val maxDailyLossPct: Double,
-    @SerializedName("stop_loss_pct") val stopLossPct: Double
-)
-
-data class PaperTrading(
-    @SerializedName("initial_balance") val initialBalance: Double
-)
-
-data class Notification(
-    val enabled: Boolean,
-    val topic: String
+/**
+ * Bot risk configuration (String values for precision)
+ */
+data class BotRiskConfig(
+    @SerializedName("max_position_pct") val maxPositionPct: String? = null,
+    @SerializedName("max_daily_loss_pct") val maxDailyLossPct: String? = null,
+    @SerializedName("stop_loss_pct") val stopLossPct: String? = null
 )
 
 /**
@@ -197,8 +188,36 @@ data class BotEquityResponse(
 )
 
 /**
- * Bot status
+ * Bot status detail (single bot in multi-bot response)
  */
+data class BotStatusDetail(
+    @SerializedName("session_id") val sessionId: String,
+    val symbol: String? = null,
+    val strategy: String? = null,
+    @SerializedName("is_running") val isRunning: Boolean,
+    @SerializedName("start_time") val startTime: String? = null,
+    @SerializedName("uptime_seconds") val uptimeSeconds: Long? = null,
+    @SerializedName("kill_switch_active") val killSwitchActive: Boolean = false,
+    @SerializedName("last_signal_time") val lastSignalTime: String? = null,
+    @SerializedName("last_signal_type") val lastSignalType: String? = null,
+    @SerializedName("last_heartbeat") val lastHeartbeat: String,
+    val config: BotConfigDetail? = null
+)
+
+/**
+ * Multi-bot status response (all bots)
+ */
+data class MultiBotStatusResponse(
+    val bots: List<BotStatusDetail>,
+    val total: Int,
+    val timestamp: String
+)
+
+/**
+ * Legacy bot status (kept for backwards compatibility)
+ * Use first bot from MultiBotStatusResponse for single-bot scenarios
+ */
+@Deprecated("Use MultiBotStatusResponse and BotStatusDetail instead")
 data class BotStatus(
     @SerializedName("is_running") val isRunning: Boolean,
     @SerializedName("start_time") val startTime: String?,

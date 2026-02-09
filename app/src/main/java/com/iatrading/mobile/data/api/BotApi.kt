@@ -9,8 +9,12 @@ import retrofit2.http.*
  */
 interface BotApi {
 
-    @GET("api/bot/config")
-    suspend fun getBotConfig(): Response<BotConfig>
+    /**
+     * Get status of all bots
+     * Returns MultiBotStatusResponse with list of bot statuses including their configurations
+     */
+    @GET("api/bot/status")
+    suspend fun getBotStatus(): Response<MultiBotStatusResponse>
 
     @GET("api/bot/trades")
     suspend fun getTrades(
@@ -36,7 +40,4 @@ interface BotApi {
         @Query("interval") interval: String = "daily",
         @Query("is_paper") isPaper: Boolean = true
     ): Response<BotEquityResponse>
-
-    @GET("api/bot/status")
-    suspend fun getBotStatus(): Response<BotStatus>
 }

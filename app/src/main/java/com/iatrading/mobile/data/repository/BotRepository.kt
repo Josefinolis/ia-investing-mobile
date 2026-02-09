@@ -16,15 +16,61 @@ class BotRepository @Inject constructor(
 ) {
 
     /**
-     * Get bot configuration
+     * Get all bot statuses
+     * Returns MultiBotStatusResponse with list of all bots and their configurations
      */
-    fun getBotConfig(): Flow<kotlin.Result<BotConfig>> = flow {
+    fun getAllBotStatus(): Flow<kotlin.Result<MultiBotStatusResponse>> = flow {
         try {
-            val response = botApi.getBotConfig()
+            val response = botApi.getBotStatus()
             if (response.isSuccessful && response.body() != null) {
                 emit(kotlin.Result.success(response.body()!!))
             } else {
-                emit(kotlin.Result.failure(Exception("Failed to fetch bot config: ${response.message()}")))
+                emit(kotlin.Result.failure(Exception("Failed to fetch bot status: ${response.message()}")))
+            }
+        } catch (e: Exception) {
+            emit(kotlin.Result.failure(e))
+        }
+    }
+
+    /**
+     * Get first bot status (for single-bot scenarios)
+     * Returns the first bot from the multi-bot status response
+     */
+    fun getFirstBotStatus(): Flow<kotlin.Result<BotStatusDetail>> = flow {
+        try {
+            val response = botApi.getBotStatus()
+            if (response.isSuccessful && response.body() != null) {
+                val multiBotStatus = response.body()!!
+                if (multiBotStatus.bots.isNotEmpty()) {
+                    emit(kotlin.Result.success(multiBotStatus.bots.first()))
+                } else {
+                    emit(kotlin.Result.failure(Exception("No bots found in status response")))
+                }
+            } else {
+                emit(kotlin.Result.failure(Exception("Failed to fetch bot status: ${response.message()}")))
+            }
+        } catch (e: Exception) {
+            emit(kotlin.Result.failure(e))
+        }
+    }
+
+    /**
+     * Get bot status by symbol
+     * Returns the bot matching the given symbol
+     */
+    fun getBotStatusBySymbol(symbol: String): Flow<kotlin.Result<BotStatusDetail>> = flow {
+        try {
+            val response = botApi.getBotStatus()
+            if (response.isSuccessful && response.body() != null) {
+                val multiBotStatus = response.body()!!
+                val bot = multiBotStatus.bots.find { it.symbol == symbol }
+                if (bot != null) {
+                    emit(kotlin.Result.success(bot))
+                } else {
+                    emit(kotlin.Result.failure(Exception("No bot found for symbol $symbol")))
+                }
+            } else {
+                emit(kotlin.Result.failure(Exception("Failed to fetch bot status: ${response.message()}")))
             }
         } catch (e: Exception) {
             emit(kotlin.Result.failure(e))
@@ -89,22 +135,6 @@ class BotRepository @Inject constructor(
                 emit(kotlin.Result.success(response.body()!!))
             } else {
                 emit(kotlin.Result.failure(Exception("Failed to fetch equity curve: ${response.message()}")))
-            }
-        } catch (e: Exception) {
-            emit(kotlin.Result.failure(e))
-        }
-    }
-
-    /**
-     * Get bot status
-     */
-    fun getBotStatus(): Flow<kotlin.Result<BotStatus>> = flow {
-        try {
-            val response = botApi.getBotStatus()
-            if (response.isSuccessful && response.body() != null) {
-                emit(kotlin.Result.success(response.body()!!))
-            } else {
-                emit(kotlin.Result.failure(Exception("Failed to fetch bot status: ${response.message()}")))
             }
         } catch (e: Exception) {
             emit(kotlin.Result.failure(e))
