@@ -1,3 +1,6 @@
+import java.util.Properties
+import java.io.FileInputStream
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
@@ -17,6 +20,13 @@ fun getHostIp(): String {
         println("Could not detect host IP, falling back to localhost: ${e.message}")
         "localhost"
     }
+}
+
+// Load keystore properties from file (for local builds) or environment (for CI/CD)
+val keystorePropertiesFile = rootProject.file("keystore.properties")
+val keystoreProperties = Properties()
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(FileInputStream(keystorePropertiesFile))
 }
 
 android {
@@ -39,10 +49,15 @@ android {
 
     signingConfigs {
         create("release") {
-            storeFile = file(System.getenv("KEYSTORE_FILE") ?: "${projectDir}/../ia-trading-release.keystore")
-            storePassword = System.getenv("KEYSTORE_PASSWORD") ?: ""
-            keyAlias = System.getenv("KEY_ALIAS") ?: "ia-trading-release"
-            keyPassword = System.getenv("KEY_PASSWORD") ?: ""
+            // Use environment variables (for CI/CD) or keystore.properties (for local builds)
+            val keystoreFile = System.getenv("KEYSTORE_FILE")
+                ?: keystoreProperties.getProperty("storeFile")
+                ?: "${projectDir}/../ia-trading-release.keystore"
+
+            storeFile = file(keystoreFile)
+            storePassword = System.getenv("KEYSTORE_PASSWORD") ?: keystoreProperties.getProperty("storePassword")
+            keyAlias = System.getenv("KEY_ALIAS") ?: keystoreProperties.getProperty("keyAlias")
+            keyPassword = System.getenv("KEY_PASSWORD") ?: keystoreProperties.getProperty("keyPassword")
         }
     }
 
