@@ -24,17 +24,31 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Build Release APK
+      - name: Decode keystore
+        run: |
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > $GITHUB_WORKSPACE/ia-trading-release.keystore
+
+      - name: Build Signed Release APK
+        env:
+          KEYSTORE_FILE: ${{ github.workspace }}/ia-trading-release.keystore
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: ./gradlew assembleDeviceRelease
 
       - name: Get version from tag
         id: version
         run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
 
+      - name: Rename APK
+        run: |
+          mv app/build/outputs/apk/device/release/app-device-release.apk \
+             app/build/outputs/apk/device/release/ia-trading-mobile-${{ steps.version.outputs.VERSION }}.apk
+
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
-          files: app/build/outputs/apk/device/release/app-device-release-unsigned.apk
+          files: app/build/outputs/apk/device/release/ia-trading-mobile-${{ steps.version.outputs.VERSION }}.apk
           name: IA Trading Mobile ${{ steps.version.outputs.VERSION }}
           body: |
             ## Features
@@ -48,8 +62,15 @@ jobs:
             - Android 8.0 (API 26) or higher
 
             ## Installation
-            Download the APK and install on your Android device.
-            Enable "Install from unknown sources" if needed.
+            1. Download the APK file
+            2. Enable "Install from unknown sources" in your device settings if needed
+            3. Open the APK file to install
+            4. Launch IA Trading Mobile
+
+            ## What's New
+            - Signed release APK (installable on all devices)
+            - Optimized and minified build (smaller file size)
+            - Production-ready configuration
           draft: false
           prerelease: false
         env:

@@ -27,13 +27,22 @@ android {
         applicationId = "com.iatrading.mobile"
         minSdk = 26
         targetSdk = 34
-        versionCode = 7
-        versionName = "1.1.1"
+        versionCode = 8
+        versionName = "1.1.2"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
         vectorDrawables {
             useSupportLibrary = true
+        }
+    }
+
+    signingConfigs {
+        create("release") {
+            storeFile = file(System.getenv("KEYSTORE_FILE") ?: "${projectDir}/../ia-trading-release.keystore")
+            storePassword = System.getenv("KEYSTORE_PASSWORD") ?: ""
+            keyAlias = System.getenv("KEY_ALIAS") ?: "ia-trading-release"
+            keyPassword = System.getenv("KEY_PASSWORD") ?: ""
         }
     }
 
@@ -56,12 +65,14 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
             buildConfigField("String", "API_BASE_URL", "\"http://195.20.235.94\"")
+            signingConfig = signingConfigs.getByName("release")
         }
     }
 
