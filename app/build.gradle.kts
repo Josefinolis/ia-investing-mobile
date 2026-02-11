@@ -37,8 +37,8 @@ android {
         applicationId = "com.iatrading.mobile"
         minSdk = 26
         targetSdk = 34
-        versionCode = 8
-        versionName = "1.1.2"
+        versionCode = 10
+        versionName = "1.1.4"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
