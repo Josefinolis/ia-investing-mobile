@@ -72,28 +72,28 @@ app/src/main/java/com/iatrading/mobile/
 
 ### VPS Port Mapping (195.20.235.94)
 
-**IMPORTANT:** The VPS runs THREE separate APIs on different ports:
+**IMPORTANT:** The VPS runs THREE separate services on different ports:
 
-| Service | Port | Purpose | Endpoints |
-|---------|------|---------|-----------|
-| **Trading API** (ia_trading_api) | **8080** | Tickers, News, Sentiment | `/api/tickers`, `/api/tickers/{ticker}/news`, `/api/status` |
-| **Bot API** (ia-trading-bot Kotlin) | **8001** | Bot Status, Trades, Performance | `/api/bot/status`, `/api/bot/trades`, `/api/bot/performance`, `/api/bot/equity` |
-| **ML API** (ia-trading-bot Python) | **8002** | ML Predictions | `/health`, `/predict`, `/train` |
+| Port | Service Name | Stack | Purpose | Key Endpoints |
+|------|--------------|-------|---------|---------------|
+| **8080** | **ia_trading_api** | Spring Boot/Kotlin | Market data, news & sentiment analysis | `/api/tickers`, `/api/tickers/{ticker}/news`, `/api/status` |
+| **8001** | **ia-trading-bot-backend** | Ktor/Kotlin | Trading bot sessions, trades & performance tracking | `/api/bot/status`, `/api/bot/trades`, `/api/bot/performance`, `/api/bot/equity` |
+| **8002** | **ia-trading-bot-ml** | FastAPI/Python | Machine learning predictions (XGBoost) | `/health`, `/predict`, `/train` |
 
 ### Product Flavors
 
 The app uses **product flavors** for different environments:
 
-| Flavor | Target | Trading API | Bot API |
-|--------|--------|-------------|---------|
+| Flavor | Target | ia_trading_api | ia-trading-bot-backend |
+|--------|--------|----------------|------------------------|
 | `emulator` | Android Emulator | `http://10.0.2.2:8000` | `http://10.0.2.2:8001` |
-| `device` | Physical Device | `http://195.20.235.94:8080` | `http://195.20.235.94:8001` |
+| `device` | Physical Device (VPS) | `http://195.20.235.94:8080` | `http://195.20.235.94:8001` |
 
 **Note:**
 - Emulator uses `10.0.2.2` to access host's localhost
-- Trading API runs on port 8000 locally, 8080 on VPS
-- Bot API always on port 8001 (both local and VPS)
-- ML API on port 8002 is NOT used by mobile app (only by bot backend)
+- **ia_trading_api** runs on port 8000 locally, 8080 on VPS
+- **ia-trading-bot-backend** always on port 8001 (both local and VPS)
+- **ia-trading-bot-ml** on port 8002 is NOT used by mobile app (only by bot backend internally)
 
 ## Building
 
