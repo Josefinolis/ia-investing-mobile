@@ -21,13 +21,25 @@ class BotRepository @Inject constructor(
      */
     fun getAllBotStatus(): Flow<kotlin.Result<MultiBotStatusResponse>> = flow {
         try {
+            android.util.Log.d("BotRepository", "Fetching bot status from API...")
             val response = botApi.getBotStatus()
+            android.util.Log.d("BotRepository", "Response code: ${response.code()}, isSuccessful: ${response.isSuccessful}")
+
             if (response.isSuccessful && response.body() != null) {
-                emit(kotlin.Result.success(response.body()!!))
+                val body = response.body()!!
+                android.util.Log.d("BotRepository", "Success! Got ${body.bots.size} bots")
+                body.bots.forEachIndexed { index, bot ->
+                    android.util.Log.d("BotRepository", "Bot $index: sessionId=${bot.sessionId}, symbol=${bot.symbol}, isRunning=${bot.isRunning}, hasConfig=${bot.config != null}")
+                }
+                emit(kotlin.Result.success(body))
             } else {
-                emit(kotlin.Result.failure(Exception("Failed to fetch bot status: ${response.message()}")))
+                val errorMsg = "Failed to fetch bot status: ${response.code()} - ${response.message()}"
+                android.util.Log.e("BotRepository", errorMsg)
+                android.util.Log.e("BotRepository", "Error body: ${response.errorBody()?.string()}")
+                emit(kotlin.Result.failure(Exception(errorMsg)))
             }
         } catch (e: Exception) {
+            android.util.Log.e("BotRepository", "Exception fetching bot status", e)
             emit(kotlin.Result.failure(e))
         }
     }

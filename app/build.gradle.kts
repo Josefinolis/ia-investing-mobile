@@ -73,8 +73,8 @@ android {
         create("device") {
             dimension = "target"
             // Physical device uses the production API on VPS
-            buildConfigField("String", "API_BASE_URL", "\"http://195.20.235.94\"")
-            buildConfigField("String", "BOT_API_URL", "\"http://195.20.235.94:8001\"")
+            buildConfigField("String", "API_BASE_URL", "\"http://195.20.235.94:8080\"")
+            buildConfigField("String", "BOT_API_URL", "\"http://195.20.235.94:8002\"")
         }
     }
 

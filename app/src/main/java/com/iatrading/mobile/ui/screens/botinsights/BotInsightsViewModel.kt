@@ -46,6 +46,7 @@ class BotInsightsViewModel @Inject constructor(
 
     private fun loadData() {
         viewModelScope.launch {
+            android.util.Log.d("BotInsightsViewModel", "Starting data load...")
             _uiState.value = BotInsightsUiState.Loading
 
             try {
@@ -59,31 +60,51 @@ class BotInsightsViewModel @Inject constructor(
                 // Load all bot statuses (includes configuration for each bot)
                 botRepository.getAllBotStatus().collect { result ->
                     result.onSuccess {
+                        android.util.Log.d("BotInsightsViewModel", "Got ${it.bots.size} bots from repository")
                         allBots = it.bots
                         // Select first bot by default
                         selectedBot = it.bots.firstOrNull()
+                        android.util.Log.d("BotInsightsViewModel", "Selected bot: ${selectedBot?.sessionId}, hasConfig: ${selectedBot?.config != null}")
                     }
-                    .onFailure { /* Log error but continue */ }
+                    .onFailure {
+                        android.util.Log.e("BotInsightsViewModel", "Failed to load bot status", it)
+                    }
                 }
 
                 // Load performance
                 botRepository.getPerformance().collect { result ->
-                    result.onSuccess { performance = it }
-                        .onFailure { /* Log error but continue */ }
+                    result.onSuccess {
+                        android.util.Log.d("BotInsightsViewModel", "Got performance data")
+                        performance = it
+                    }
+                    .onFailure {
+                        android.util.Log.e("BotInsightsViewModel", "Failed to load performance", it)
+                    }
                 }
 
                 // Load recent trades
                 botRepository.getTrades(limit = 20).collect { result ->
-                    result.onSuccess { trades = it.trades }
-                        .onFailure { /* Log error but continue */ }
+                    result.onSuccess {
+                        android.util.Log.d("BotInsightsViewModel", "Got ${it.trades.size} trades")
+                        trades = it.trades
+                    }
+                    .onFailure {
+                        android.util.Log.e("BotInsightsViewModel", "Failed to load trades", it)
+                    }
                 }
 
                 // Load equity curve
                 botRepository.getEquityCurve(interval = "daily").collect { result ->
-                    result.onSuccess { equity = it.dataPoints }
-                        .onFailure { /* Log error but continue */ }
+                    result.onSuccess {
+                        android.util.Log.d("BotInsightsViewModel", "Got ${it.dataPoints.size} equity points")
+                        equity = it.dataPoints
+                    }
+                    .onFailure {
+                        android.util.Log.e("BotInsightsViewModel", "Failed to load equity curve", it)
+                    }
                 }
 
+                android.util.Log.d("BotInsightsViewModel", "Setting UI state to Success with ${allBots.size} bots")
                 _uiState.value = BotInsightsUiState.Success(
                     allBots = allBots,
                     selectedBot = selectedBot,
@@ -93,6 +114,7 @@ class BotInsightsViewModel @Inject constructor(
                 )
 
             } catch (e: Exception) {
+                android.util.Log.e("BotInsightsViewModel", "Exception in loadData", e)
                 _uiState.value = BotInsightsUiState.Error(
                     message = e.message ?: "Unknown error occurred"
                 )
