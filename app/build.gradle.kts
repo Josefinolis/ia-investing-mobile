@@ -37,8 +37,8 @@ android {
         applicationId = "com.iatrading.mobile"
         minSdk = 26
         targetSdk = 34
-        versionCode = 10
-        versionName = "1.1.4"
+        versionCode = 11
+        versionName = "1.1.5"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -86,7 +86,6 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            buildConfigField("String", "API_BASE_URL", "\"http://195.20.235.94\"")
             signingConfig = signingConfigs.getByName("release")
         }
     }
