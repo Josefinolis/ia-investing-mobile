@@ -67,7 +67,7 @@ android {
         create("emulator") {
             dimension = "target"
             // Android emulator uses 10.0.2.2 to reach host's localhost
-            buildConfigField("String", "API_BASE_URL", "\"http://10.0.2.2:8000\"")
+            buildConfigField("String", "API_BASE_URL", "\"http://10.0.2.2:8080\"")
             buildConfigField("String", "BOT_API_URL", "\"http://10.0.2.2:8001\"")
         }
         create("device") {

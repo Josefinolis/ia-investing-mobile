@@ -86,13 +86,13 @@ The app uses **product flavors** for different environments:
 
 | Flavor | Target | ia_trading_api | ia-trading-bot-backend |
 |--------|--------|----------------|------------------------|
-| `emulator` | Android Emulator | `http://10.0.2.2:8000` | `http://10.0.2.2:8001` |
+| `emulator` | Android Emulator | `http://10.0.2.2:8080` | `http://10.0.2.2:8001` |
 | `device` | Physical Device (VPS) | `http://195.20.235.94:8080` | `http://195.20.235.94:8001` |
 
 **Note:**
 - Emulator uses `10.0.2.2` to access host's localhost
-- **ia_trading_api** runs on port 8000 locally, 8080 on VPS
-- **ia-trading-bot-backend** always on port 8001 (both local and VPS)
+- **ia_trading_api** runs on port 8080 (both local and VPS)
+- **ia-trading-bot-backend** runs on port 8001 (both local and VPS)
 - **ia-trading-bot-ml** on port 8002 is NOT used by mobile app (only by bot backend internally)
 
 ## Building
