@@ -122,12 +122,21 @@ class BotRepository @Inject constructor(
     ): Flow<kotlin.Result<BotPerformance>> = flow {
         try {
             val response = botApi.getPerformance(from, to, isPaper)
-            if (response.isSuccessful && response.body() != null) {
-                emit(kotlin.Result.success(response.body()!!))
-            } else {
-                emit(kotlin.Result.failure(Exception("Failed to fetch performance: ${response.message()}")))
+            when {
+                response.isSuccessful && response.body() != null -> {
+                    emit(kotlin.Result.success(response.body()!!))
+                }
+                response.code() == 404 -> {
+                    // 404 means no performance data yet - not a fatal error
+                    android.util.Log.d("BotRepository", "Performance data not found (404) - continuing without it")
+                    // Don't emit failure, let the ViewModel handle null performance
+                }
+                else -> {
+                    emit(kotlin.Result.failure(Exception("Failed to fetch performance: ${response.message()}")))
+                }
             }
         } catch (e: Exception) {
+            android.util.Log.e("BotRepository", "Exception fetching performance", e)
             emit(kotlin.Result.failure(e))
         }
     }

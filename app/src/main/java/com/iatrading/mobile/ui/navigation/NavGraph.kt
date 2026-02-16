@@ -28,7 +28,7 @@ fun TradingNavGraph() {
 
     NavHost(
         navController = navController,
-        startDestination = Screen.Dashboard.route
+        startDestination = Screen.BotInsights.route
     ) {
         composable(Screen.Dashboard.route) {
             DashboardScreen(
